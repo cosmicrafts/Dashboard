@@ -1,3 +1,5 @@
+<!-- src/views/NFTView.vue -->
+
 <template>
   <div>
     <h2>NFTs</h2>

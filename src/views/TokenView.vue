@@ -1,3 +1,5 @@
+<!-- src/views/TokenView.vue -->
+
 <template>
   <div>
     <h2>Tokens</h2>

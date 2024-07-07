@@ -21,6 +21,30 @@
         <p>Average XP Earned: {{ formatNumber(averageStats.averageXpEarned) }}</p>
       </div>
 
+      <h3>My Stats</h3>
+      <div class="stat-block">
+        <p>Games Lost: {{ formatNumber(myStats.gamesLost) }}</p>
+        <p>Energy Generated: {{ formatNumber(myStats.energyGenerated) }}</p>
+        <p>Games Played: {{ formatNumber(myStats.gamesPlayed) }}</p>
+        <p>Total Damage Dealt: {{ formatNumber(myStats.totalDamageDealt) }}</p>
+        <p>Total Damage Crit: {{ formatNumber(myStats.totalDamageCrit) }}</p>
+        <p>Total Damage Taken: {{ formatNumber(myStats.totalDamageTaken) }}</p>
+        <p>Energy Used: {{ formatNumber(myStats.energyUsed) }}</p>
+        <p>Total Damage Evaded: {{ formatNumber(myStats.totalDamageEvaded) }}</p>
+        <p>Energy Wasted: {{ formatNumber(myStats.energyWasted) }}</p>
+        <p>Games Won: {{ formatNumber(myStats.gamesWon) }}</p>
+        <p>Total XP Earned: {{ formatNumber(myStats.totalXpEarned) }}</p>
+      </div>
+
+      <h3>My Average Stats</h3>
+      <div class="stat-block">
+        <p>Average Damage Dealt: {{ formatNumber(myAverageStats.averageDamageDealt) }}</p>
+        <p>Average Energy Generated: {{ formatNumber(myAverageStats.averageEnergyGenerated) }}</p>
+        <p>Average Energy Used: {{ formatNumber(myAverageStats.averageEnergyUsed) }}</p>
+        <p>Average Kills: {{ formatNumber(myAverageStats.averageKills) }}</p>
+        <p>Average XP Earned: {{ formatNumber(myAverageStats.averageXpEarned) }}</p>
+      </div>
+
       <h3>Game Mode Stats</h3>
       <div class="stat-block" v-for="gameMode in playerStats.totalGamesGameMode" :key="gameMode.gameModeID">
         <p>Game Mode ID: {{ gameMode.gameModeID }}</p>
@@ -61,6 +85,10 @@ onMounted(async () => {
 const playerStats = computed(() => statisticsStore.playerStats);
 const averageStats = computed(() => statisticsStore.averageStats);
 const overallStats = computed(() => statisticsStore.overallStats);
+const myAverageStats = computed(() => statisticsStore.myAverageStats);
+const myStats = computed(() => statisticsStore.myStats);
+const allOnValidation = computed(() => statisticsStore.allOnValidation);
+const basicStats = computed(() => statisticsStore.basicStats);
 
 const formatNumber = (number) => {
   if (typeof number === 'bigint') {

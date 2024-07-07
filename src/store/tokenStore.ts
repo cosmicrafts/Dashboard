@@ -1,3 +1,4 @@
+// src/store/tokenStore.ts
 import { defineStore } from 'pinia';
 import { fetchICRC1Tokens, fetchICRC7Tokens } from '@/services/CommonTokenService';
 import type { Principal } from '@dfinity/principal';

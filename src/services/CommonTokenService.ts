@@ -1,3 +1,4 @@
+// src/services/CommonTokenService.ts
 import { Actor, HttpAgent } from '@dfinity/agent';
 import { idlFactory as icrc1IdlFactory } from '@/declarations/icrc1';
 import { idlFactory as icrc7IdlFactory } from '@/declarations/icrc7';

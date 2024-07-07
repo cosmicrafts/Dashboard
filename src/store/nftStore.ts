@@ -1,3 +1,4 @@
+// src/store/nftStore.ts
 import { defineStore } from 'pinia';
 import { fetchICRC7Tokens } from '@/services/CommonTokenService';
 import type { Principal } from '@dfinity/principal';
