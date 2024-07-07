@@ -75,18 +75,19 @@ export const useAuthStore = defineStore('auth', {
       this.isAuthenticated = true;
     },
     createIdentity(publicKey: string, privateKey: string) {
-      console.log('Environment Variables:', import.meta.env);
       const identity = Ed25519KeyIdentity.fromKeyPair(
         base64ToUint8Array(publicKey),
         base64ToUint8Array(privateKey)
       );
-      const agent = new HttpAgent({ identity });
-      if (import.meta.env.VITE_NETWORK !== "ic") {
-        agent.fetchRootKey();
+      const agent = new HttpAgent({ identity, host: 'https://ic0.app' });
+
+      if (import.meta.env.MODE !== 'production') {
+        agent.fetchRootKey(); // Only for local development
       }
+
       this.principalId = identity.getPrincipal().toText();
       this.user = { publicKey, privateKey };
-    
+
       const canisterIds = {
         tournaments: import.meta.env.VITE_CANISTER_ID_TOURNAMENTS,
         cosmicrafts: import.meta.env.VITE_CANISTER_ID_COSMICRAFTS,
@@ -95,30 +96,22 @@ export const useAuthStore = defineStore('auth', {
         statistics: import.meta.env.VITE_CANISTER_ID_STATISTICS,
         token: import.meta.env.VITE_CANISTER_ID_ICRC1,
       };
-    
-      // Log canister IDs
-      console.log('Canister IDs:', canisterIds);
-    
-      // Ensure all canister IDs are defined
-      for (const [key, value] of Object.entries(canisterIds)) {
-        if (!value) {
-          throw new Error(`Canister ID for ${key} is not defined.`);
-        }
+
+      this.initializeActors(agent, canisterIds);
+    },
+    initializeActors(agent: HttpAgent, canisterIds: Record<string, string>) {
+      const idlFactories: Record<string, any> = {
+        tournaments: tournamentsIdlFactory,
+        cosmicrafts: cosmicraftsIdlFactory,
+        nft: nftIdlFactory,
+        player: playerIdlFactory,
+        statistics: statisticsIdlFactory,
+        token: tokenIdlFactory,
+      };
+
+      for (const [key, idlFactory] of Object.entries(idlFactories)) {
+        (this as any)[key] = Actor.createActor(idlFactory, { agent, canisterId: canisterIds[key] }) as ActorSubclass<any>;
       }
-    
-      // Log constructed URLs
-      for (const [key, value] of Object.entries(canisterIds)) {
-        const canisterURL = `https://ic0.app/api/v2/canister/${value}`;
-        console.log(`Constructed URL for ${key}: ${canisterURL}`);
-      }
-    
-      // Create actors for all canisters
-      this.tournaments = Actor.createActor(tournamentsIdlFactory, { agent, canisterId: canisterIds.tournaments }) as ActorSubclass<TournamentsService>;
-      this.cosmicrafts = Actor.createActor(cosmicraftsIdlFactory, { agent, canisterId: canisterIds.cosmicrafts }) as ActorSubclass<CosmicraftsService>;
-      this.nft = Actor.createActor(nftIdlFactory, { agent, canisterId: canisterIds.nft }) as ActorSubclass<NFTService>;
-      this.player = Actor.createActor(playerIdlFactory, { agent, canisterId: canisterIds.player }) as ActorSubclass<PlayerService>;
-      this.statistics = Actor.createActor(statisticsIdlFactory, { agent, canisterId: canisterIds.statistics }) as ActorSubclass<StatisticsService>;
-      this.token = Actor.createActor(tokenIdlFactory, { agent, canisterId: canisterIds.token }) as ActorSubclass<TokenService>;
     }
   },
 });
@@ -127,7 +120,7 @@ function base64ToUint8Array(base64: string) {
   const binaryString = atob(base64);
   const len = binaryString.length;
   const bytes = new Uint8Array(len);
-  for (let i = 0; len > i; i++) {
+  for (let i = 0; i < len; i++) {
     bytes[i] = binaryString.charCodeAt(i);
   }
   return bytes;
