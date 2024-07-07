@@ -11,9 +11,19 @@ import { fileURLToPath, URL } from 'url';
 dotenv.config();
 
 export default defineConfig({
+  base: '/', // Ensure this is set correctly for your deployment
   build: {
     emptyOutDir: true,
     assetsDir: 'assets',
+    rollupOptions: {
+      external: ['globalThis'],
+      plugins: [
+        rollupNodePolyFill(),
+        inject({
+          globalThis: 'globalthis',
+        }),
+      ],
+    },
   },
   optimizeDeps: {
     esbuildOptions: {
@@ -34,14 +44,13 @@ export default defineConfig({
     vue(),
     inject({
       global: 'globalThis',
-      process: 'process',
-      Buffer: ['buffer', 'Buffer'],
     }),
   ],
   resolve: {
     alias: {
       'process': 'process/browser',
       'buffer': 'buffer',
+      'globalThis': 'globalthis', // Alias for globalThis
       '@': fileURLToPath(new URL('./src', import.meta.url)),
       '@/declarations': fileURLToPath(new URL('./src/declarations', import.meta.url)),
       '@/store': fileURLToPath(new URL('./src/store', import.meta.url)),

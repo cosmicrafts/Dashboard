@@ -2,7 +2,7 @@
   <div class="main-div">
     <img src="@/assets/Cosmicrafts_Logo.svg" class="cosmic-logo-img" alt="Cosmicrafts Logo" />
     <label class="cosmic-label-connect">Connect with:</label>
-    <div id="buttonDiv"></div>
+    <div id="buttonDiv" class="google-button"></div>
     <div class="inner-div">
       <div class="btn-div" v-for="method in authMethods" :key="method.text" @click="method.onClick">
         <label class="btn-label">
@@ -29,26 +29,14 @@ import MetaMaskService from '@/services/MetaMaskService';
 import PhantomService from '@/services/PhantomService';
 import { Ed25519KeyIdentity } from '@dfinity/identity';
 import nacl from 'tweetnacl';
-import { encode as base64Encode, decode as base64Decode } from 'base64-arraybuffer';
+import { encode as base64Encode } from 'base64-arraybuffer';
 
-// Convert Base64 to Uint8Array
-function base64ToUint8Array(base64) {
-  const binaryString = atob(base64);
-  const len = binaryString.length;
-  const bytes = new Uint8Array(len);
-  for (let i = 0; i < len; i++) {
-    bytes[i] = binaryString.charCodeAt(i);
-  }
-  return bytes;
-}
+// Import SVGs
+import nfidLogo from '@/assets/NFID_logo.svg';
+import icpLogo from '@/assets/icp_logo.svg';
+import metaMaskLogo from '@/assets/metaMask_icon.svg';
+import phantomLogo from '@/assets/Phantom_icon.svg';
 
-// Convert Uint8Array to Base64
-function uint8ArrayToBase64(uint8Array) {
-  const binaryString = uint8Array.reduce((data, byte) => data + String.fromCharCode(byte), '');
-  return btoa(binaryString);
-}
-
-// Auth Store Actions
 const authStore = useAuthStore();
 const router = useRouter();
 
@@ -79,11 +67,15 @@ const initializeGoogleSignIn = () => {
 };
 
 const handleCredentialResponse = (response) => {
-  authStore.loginWithGoogle(response).then(handleAfterLogin);
+  authStore.loginWithGoogle(response, router).then(handleAfterLogin);
 };
 
 onMounted(() => {
   loadGoogleIdentityServices();
+  // Check for existing session and handle redirection
+  if (authStore.isAuthenticated) {
+    handleAfterLogin();
+  }
 });
 
 const generateKeysFromSignature = async (signature) => {
@@ -93,16 +85,12 @@ const generateKeysFromSignature = async (signature) => {
   const seed = new Uint8Array(hashBuffer.slice(0, 32));
   const keyPair = nacl.sign.keyPair.fromSeed(seed);
 
-  const publicKeyBase64 = uint8ArrayToBase64(keyPair.publicKey);
-  const privateKeyBase64 = uint8ArrayToBase64(keyPair.secretKey);
+  const publicKeyBase64 = base64Encode(keyPair.publicKey);
+  const privateKeyBase64 = base64Encode(keyPair.secretKey);
 
-  const publicKeyArray = base64ToUint8Array(publicKeyBase64);
-  const privateKeyArray = base64ToUint8Array(privateKeyBase64);
-
-  const identity = Ed25519KeyIdentity.fromKeyPair(publicKeyArray, privateKeyArray);
-  authStore.createIdentity(publicKeyBase64, privateKeyBase64);
+  authStore.createIdentity(publicKeyBase64, privateKeyBase64, router);
   authStore.isAuthenticated = true;
-  return identity;
+  handleAfterLogin();
 };
 
 const loginWithMetaMask = async () => {
@@ -119,29 +107,24 @@ const loginWithPhantom = async () => {
 
 const authMethods = [
   {
-    logo: '@/assets/NFID_logo.svg',
+    logo: nfidLogo,
     text: 'NFID',
-    onClick: () => authStore.loginWithIdentityProvider('NFID').then(handleAfterLogin),
+    onClick: () => authStore.loginWithNFID(router).then(handleAfterLogin),
   },
   {
-    logo: '@/assets/icp_logo.svg',
+    logo: icpLogo,
     text: 'Internet Identity',
-    onClick: () => authStore.loginWithIdentityProvider('InternetIdentity').then(handleAfterLogin),
+    onClick: () => authStore.loginWithInternetIdentity(router).then(handleAfterLogin),
   },
   {
-    logo: '@/assets/metaMask_icon.svg',
+    logo: metaMaskLogo,
     text: 'MetaMask',
     onClick: loginWithMetaMask,
   },
   {
-    logo: '@/assets/Phantom_icon.svg',
+    logo: phantomLogo,
     text: 'Phantom',
     onClick: loginWithPhantom,
-  },
-  {
-    logo: '@/assets/wouid_icon.svg',
-    text: 'Other Options',
-    onClick: () => window.location.href = import.meta.env.VITE_AUTH0_REDIRECT_URI,
   },
 ];
 </script>
@@ -156,6 +139,10 @@ body, .cosmic-label-connect, .btn-label, .bottom-label {
 }
 
 .main-div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   width: 100vw;
   height: 100vh;
   text-align: center;
@@ -167,37 +154,42 @@ body, .cosmic-label-connect, .btn-label, .bottom-label {
 }
 
 .cosmic-logo-img {
-  --h: 275px;
-  --wr: calc(var(--h) / 383px);
-  width: calc(var(--h) * var(--wr));
-  height: var(--h);
+  width: 200px;
+  height: auto;
   margin-top: 4vh;
 }
 
 .cosmic-label-connect {
   color: #FFFFFF;
   font-weight: 600;
-  display: block;
   margin: 16px 0px;
+  font-size: 1.5rem;
+}
+
+.google-button {
+  margin-bottom: 20px;
 }
 
 .inner-div {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   gap: 12px;
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto;
 }
 
 .btn-div {
-  width: 280px;
+  width: 100%;
   height: 48px;
   position: relative;
   background-image: url('@/assets/Boton_Inactivo.svg');
   cursor: pointer;
-  display: grid;
-  grid-template-columns: 20% 80%;
+  display: flex;
+  align-items: center;
   border-radius: 8px;
+  padding: 0 20px;
 }
 
 .btn-div:hover {
@@ -206,31 +198,26 @@ body, .cosmic-label-connect, .btn-label, .bottom-label {
 }
 
 .button-account-icon {
-  width: 1.5rem;
-  vertical-align: middle;
+  width: 24px;
+  height: 24px;
   margin-right: 12px;
 }
 
 .btn-label {
   color: #FFFFFF;
   font-weight: 500;
-  font-size: 16px;
-  position: absolute;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
-  height: 50%;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  cursor: pointer;
-  margin-top: 1px;
-  vertical-align: bottom;
 }
 
 .bottom-div {
-  position: absolute;
-  width: 100%;
-  bottom: 20px;
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
 }
 
 .bottom-wou-icon {
@@ -240,13 +227,8 @@ body, .cosmic-label-connect, .btn-label, .bottom-label {
 .bottom-label {
   color: #aaaaaa;
   display: block;
-  font-size: 10px;
-  margin-top: 2px;
-}
-
-@media (max-width: 480px) {
-  .btn-div {
-    margin: 2px auto;
-  }
+  font-size: 0.875rem;
+  text-align: center;
+  margin-top: 10px;
 }
 </style>

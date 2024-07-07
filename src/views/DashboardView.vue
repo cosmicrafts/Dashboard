@@ -1,6 +1,7 @@
 <template>
   <div class="dashboard">
     <UserInfo />
+    <button @click="logout">Logout</button>
     <section>
       <h2>All Tournaments</h2>
       <ul>
@@ -36,9 +37,11 @@ import { ref, onMounted } from 'vue';
 import { useAuthStore } from '@/store/auth';
 import { useTournamentStore } from '@/store/tournamentStore';
 import UserInfo from '@/components/UserInfo.vue';
+import { useRouter } from 'vue-router';
 
 const authStore = useAuthStore();
 const tournamentStore = useTournamentStore();
+const router = useRouter();
 
 const showCreateTournamentForm = ref(false);
 const name = ref('');
@@ -58,6 +61,11 @@ const createTournament = async () => {
     new Date(expirationDate.value).getTime()
   );
   await fetchAllTournaments();
+};
+
+const logout = async () => {
+  await authStore.logout();
+  router.push({ name: 'Home' });
 };
 
 onMounted(() => {

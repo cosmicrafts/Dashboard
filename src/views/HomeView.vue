@@ -8,18 +8,6 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { useTournamentStore } from '@/store';
-
-const tournamentStore = useTournamentStore();
-
-const fetchAllTournaments = async () => {
-  await tournamentStore.fetchAllTournaments();
-};
-
-onMounted(() => {
-  fetchAllTournaments();
-});
 </script>
 
 <style scoped>
