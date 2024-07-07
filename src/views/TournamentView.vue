@@ -1,3 +1,4 @@
+<!-- src/views/TournamentView.vue -->
 <template>
   <section>
     <h2>{{ tournament.name }}</h2>
@@ -12,7 +13,6 @@
       </li>
     </ul>
     <button @click="joinTournament">Join Tournament</button>
-    <button @click="updateBracket">Update Bracket</button>
     <h3>Matches</h3>
     <div class="bracket">
       <div
@@ -96,11 +96,6 @@ const fetchTournamentDetails = async () => {
 
 const joinTournament = async () => {
   await tournamentStore.joinTournament(tournamentId.value, authStore.principalId);
-  await fetchTournamentDetails();
-};
-
-const updateBracket = async () => {
-  await tournamentStore.updateBracket(tournamentId.value);
   await fetchTournamentDetails();
 };
 

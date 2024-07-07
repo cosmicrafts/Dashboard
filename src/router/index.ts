@@ -1,3 +1,5 @@
+// src/router/index.ts
+
 import { createRouter, createWebHistory } from 'vue-router';
 import HomeView from '../views/HomeView.vue';
 import TournamentView from '../views/TournamentView.vue';
@@ -7,6 +9,7 @@ import TokenView from '../views/TokenView.vue';
 import NFTView from '../views/NFTView.vue';
 import UserView from '../views/UserView.vue';
 import StatisticsView from '../views/StatisticsView.vue';
+import TournamentSection from '../components/TournamentSection.vue';
 import { useAuthStore } from '../store/auth';
 
 const routes = [
@@ -53,6 +56,12 @@ const routes = [
     path: '/statistics',
     name: 'Statistics',
     component: StatisticsView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/tournament-section',
+    name: 'TournamentSection',
+    component: TournamentSection,
     meta: { requiresAuth: true },
   },
 ];
