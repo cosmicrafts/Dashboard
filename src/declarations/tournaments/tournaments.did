@@ -1,0 +1,42 @@
+type Tournament = 
+ record {
+   bracketCreated: bool;
+   expirationDate: Time;
+   id: nat;
+   isActive: bool;
+   matchCounter: nat;
+   name: text;
+   participants: vec principal;
+   prizePool: text;
+   registeredParticipants: vec principal;
+   startDate: Time;
+ };
+type Time = int;
+type Match = 
+ record {
+   id: nat;
+   nextMatchId: opt nat;
+   participants: vec principal;
+   result: opt record {
+                 score: text;
+                 winner: principal;
+               };
+   status: text;
+   tournamentId: nat;
+ };
+service : {
+  adminUpdateMatch: (nat, nat, nat, text) -> (bool);
+  createTournament: (text, Time, text, Time) -> (nat);
+  deleteAllTournaments: () -> (bool);
+  disputeMatch: (nat, nat, text) -> (bool);
+  getActiveTournaments: () -> (vec Tournament) query;
+  getAllTournaments: () -> (vec Tournament) query;
+  getInactiveTournaments: () -> (vec Tournament) query;
+  getRegisteredUsers: (nat) -> (vec principal) query;
+  getTournamentBracket: (nat) -> (record {matches: vec Match;}) query;
+  joinTournament: (nat) -> (bool);
+  submitFeedback: (nat, text) -> (bool);
+  submitMatchResult: (nat, nat, text) -> (bool);
+  updateBracket: (nat) -> (bool);
+  updateBracketAfterMatchUpdate: (nat, nat, principal) -> ();
+}
