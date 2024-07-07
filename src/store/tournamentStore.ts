@@ -1,3 +1,4 @@
+// src/store/tournamentStore.ts
 import { defineStore } from 'pinia';
 import type { Principal } from '@dfinity/principal';
 import { useAuthStore } from './auth';

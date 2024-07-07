@@ -1,4 +1,4 @@
-<!-- src/views/TournamentView.vue -->
+// src/views/TournamentView.vue
 <template>
   <section>
     <h2>{{ tournament.name }}</h2>
@@ -32,7 +32,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import { useTournamentStore } from '@/store';
+import { useTournamentStore } from '@/store/tournamentStore';
 import { useAuthStore } from '@/store/auth';
 import { useRoute } from 'vue-router';
 import Match from '@/components/Match.vue';
@@ -40,6 +40,8 @@ import Match from '@/components/Match.vue';
 const tournamentStore = useTournamentStore();
 const authStore = useAuthStore();
 const route = useRoute();
+
+// Ensure the tournamentId is correctly parsed
 const tournamentId = ref(BigInt(route.params.id));
 
 const tournament = ref({});
@@ -84,19 +86,27 @@ const participantCount = computed(() => {
 });
 
 const fetchTournamentDetails = async () => {
-  await tournamentStore.fetchTournamentBracket(tournamentId.value);
-  matches.value = tournamentStore.tournamentBracket.matches;
+  try {
+    await tournamentStore.fetchAllTournaments();  // Ensure that all tournaments are fetched first
+    await tournamentStore.fetchTournamentBracket(tournamentId.value);
+    matches.value = tournamentStore.tournamentBracket.matches;
 
-  await tournamentStore.fetchRegisteredUsers(tournamentId.value);
-  participants.value = tournamentStore.users;
+    await tournamentStore.fetchRegisteredUsers(tournamentId.value);
+    participants.value = tournamentStore.users;
 
-  await tournamentStore.fetchAllTournaments();
-  tournament.value = tournamentStore.tournaments.find(t => t.id === tournamentId.value);
+    tournament.value = tournamentStore.tournaments.find(t => t.id === tournamentId.value) || {};
+  } catch (error) {
+    console.error('Error fetching tournament details:', error);
+  }
 };
 
 const joinTournament = async () => {
-  await tournamentStore.joinTournament(tournamentId.value, authStore.principalId);
-  await fetchTournamentDetails();
+  try {
+    await tournamentStore.joinTournament(tournamentId.value);
+    await fetchTournamentDetails();
+  } catch (error) {
+    console.error('Error joining tournament:', error);
+  }
 };
 
 const formatDate = (bigIntDate) => {

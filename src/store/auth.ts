@@ -1,8 +1,9 @@
+// src/store/auth.ts
 import { defineStore } from 'pinia';
 import { Actor, HttpAgent, type ActorSubclass } from '@dfinity/agent';
 import { Ed25519KeyIdentity } from '@dfinity/identity';
 import nacl from 'tweetnacl';
-import { encode as base64Encode } from 'base64-arraybuffer';
+import { encode as base64Encode, decode as base64Decode } from 'base64-arraybuffer';
 import MetaMaskService from '@/services/MetaMaskService';
 import PhantomService from '@/services/PhantomService';
 import { AuthClient } from '@dfinity/auth-client';
@@ -34,6 +35,43 @@ export const useAuthStore = defineStore('auth', {
     authClient: null as AuthClient | null,
   }),
   actions: {
+    async initializeStore() {
+      const storedData = localStorage.getItem('authStore');
+      if (storedData) {
+        const data = JSON.parse(storedData);
+        this.user = data.user;
+        this.isAuthenticated = data.isAuthenticated;
+        this.googleSub = data.googleSub;
+        this.principalId = data.principalId;
+
+        if (data.authClient) {
+          this.authClient = await AuthClient.create();
+        }
+
+        if (this.isAuthenticated && this.user) {
+          const identity = Ed25519KeyIdentity.fromKeyPair(
+            base64ToUint8Array(this.user.publicKey),
+            base64ToUint8Array(this.user.privateKey)
+          );
+          const agent = new HttpAgent({ identity, host: 'https://ic0.app' });
+
+          if (import.meta.env.MODE !== 'production') {
+            agent.fetchRootKey(); // Only for local development
+          }
+
+          const canisterIds = {
+            tournaments: import.meta.env.VITE_CANISTER_ID_TOURNAMENTS,
+            cosmicrafts: import.meta.env.VITE_CANISTER_ID_COSMICRAFTS,
+            nft: import.meta.env.VITE_CANISTER_ID_ICRC7,
+            player: import.meta.env.VITE_CANISTER_ID_PLAYER,
+            statistics: import.meta.env.VITE_CANISTER_ID_STATISTICS,
+            token: import.meta.env.VITE_CANISTER_ID_ICRC1,
+          };
+
+          await this.initializeActors(agent, canisterIds);
+        }
+      }
+    },
     async loginWithGoogle(response: any, router: any) {
       const decodedIdToken = response.credential.split('.')[1];
       const payload = JSON.parse(atob(decodedIdToken));
@@ -70,6 +108,7 @@ export const useAuthStore = defineStore('auth', {
           const identity = authClient.getIdentity();
           await this.createIdentityFromAuthClient(identity, router);
           this.isAuthenticated = true;
+          this.saveStateToLocalStorage();
           router.push({ name: 'Dashboard' });
         },
         onError: (error) => {
@@ -97,6 +136,7 @@ export const useAuthStore = defineStore('auth', {
       };
 
       await this.initializeActors(agent, canisterIds);
+      this.saveStateToLocalStorage();
       router.push({ name: 'Dashboard' });
     },
     async generateKeysFromSignature(signature: string, router: any) {
@@ -109,6 +149,7 @@ export const useAuthStore = defineStore('auth', {
       const privateKeyBase64 = base64Encode(keyPair.secretKey);
       await this.createIdentity(publicKeyBase64, privateKeyBase64, router);
       this.isAuthenticated = true;
+      this.saveStateToLocalStorage();
       router.push({ name: 'Dashboard' });
     },
     async generateKeysFromSub(sub: string, router: any) {
@@ -121,6 +162,7 @@ export const useAuthStore = defineStore('auth', {
       const privateKeyBase64 = base64Encode(keyPair.secretKey);
       await this.createIdentity(publicKeyBase64, privateKeyBase64, router);
       this.isAuthenticated = true;
+      this.saveStateToLocalStorage();
       router.push({ name: 'Dashboard' });
     },
     async createIdentity(publicKey: string, privateKey: string, router: any) {
@@ -147,6 +189,7 @@ export const useAuthStore = defineStore('auth', {
       };
 
       await this.initializeActors(agent, canisterIds);
+      this.saveStateToLocalStorage();
       router.push({ name: 'Dashboard' });
     },
     async initializeActors(agent: HttpAgent, canisterIds: Record<string, string>) {
@@ -163,6 +206,16 @@ export const useAuthStore = defineStore('auth', {
         (this as any)[key] = Actor.createActor(idlFactory, { agent, canisterId: canisterIds[key] }) as ActorSubclass<any>;
       }
     },
+    saveStateToLocalStorage() {
+      const authData = {
+        user: this.user,
+        isAuthenticated: this.isAuthenticated,
+        googleSub: this.googleSub,
+        principalId: this.principalId,
+        authClient: this.authClient ? true : false, // Boolean to indicate authClient presence
+      };
+      localStorage.setItem('authStore', JSON.stringify(authData));
+    },
     async logout() {
       this.user = null;
       this.isAuthenticated = false;
@@ -175,6 +228,7 @@ export const useAuthStore = defineStore('auth', {
       this.statistics = null;
       this.token = null;
       this.authClient = null;
+      localStorage.removeItem('authStore');
     }
   },
 });
