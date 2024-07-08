@@ -206,6 +206,24 @@ export const useAuthStore = defineStore('auth', {
         (this as any)[key] = Actor.createActor(idlFactory, { agent, canisterId: canisterIds[key] }) as ActorSubclass<any>;
       }
     },
+    async initializeAdditionalActor(canisterId: string, idlFactory: any): Promise<ActorSubclass<any>> {
+      if (!this.user) {
+        throw new Error("User is not authenticated");
+      }
+
+      const identity = Ed25519KeyIdentity.fromKeyPair(
+        base64ToUint8Array(this.user.publicKey),
+        base64ToUint8Array(this.user.privateKey)
+      );
+
+      const agent = new HttpAgent({ identity, host: 'https://ic0.app' });
+
+      if (import.meta.env.MODE !== 'production') {
+        await agent.fetchRootKey(); // Only for local development
+      }
+
+      return Actor.createActor(idlFactory, { agent, canisterId });
+    },
     saveStateToLocalStorage() {
       const authData = {
         user: this.user,
