@@ -13,7 +13,7 @@
             {{ key }}: {{ formatMetadataValue(value) }}
           </li>
         </ul>
-        <form @submit.prevent="handleTransfer(canisterId)">
+        <form v-if="transferData[canisterId]" @submit.prevent="handleTransfer(canisterId)">
           <label>
             To:
             <input v-model="transferData[canisterId].to" type="text" required />
@@ -61,6 +61,7 @@ onMounted(async () => {
 });
 
 const formatBalance = (balance, decimals) => {
+  if (!balance || !decimals) return 'Loading...';
   return (balance / BigInt(10 ** decimals)).toString();
 };
 
