@@ -1,0 +1,42 @@
+type UUID = text;
+type Token = 
+ record {
+   amount: nat;
+   title: text;
+ };
+type TierID = nat;
+type Tier = 
+ record {
+   desc: text;
+   id: TierID;
+   status: text;
+   title: text;
+   token: Token;
+ };
+type RefAccount = 
+ record {
+   multiplier: float64;
+   netWorth: float64;
+   playerID: principal;
+   refByUUID: UUID;
+   tiers: vec Tier;
+   tokens: vec Token;
+   uuid: UUID;
+ };
+service : {
+  calculateDynamicMultiplier: (nat) -> (float64);
+  calculateNetWorth: (vec Token) -> (float64);
+  claimTierToken: (principal) -> (bool, text);
+  enrollByPrincipal: (opt text, principal) -> (bool, text);
+  enrollPlayer: (opt text) -> (bool, text);
+  generateRandomPrincipal: () -> (principal);
+  getAccount: () -> (opt RefAccount) query;
+  getAllAccounts: () -> (vec RefAccount) query;
+  getAlltiers: () -> (vec Tier) query;
+  getCurrentPlayerTier: (principal) -> (opt Tier);
+  getTopPlayers: (nat) -> (vec record {
+                                 principal;
+                                 RefAccount;
+                               });
+  signupLinkShare: () -> (text) query;
+}
