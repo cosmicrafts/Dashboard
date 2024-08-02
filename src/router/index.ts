@@ -9,6 +9,7 @@ import TokenView from '../views/TokenView.vue';
 import NFTView from '../views/NFTView.vue';
 import UserView from '../views/UserView.vue';
 import StatisticsView from '../views/StatisticsView.vue';
+import ReferralView from '../views/ReferralView.vue';
 import TournamentSection from '../components/TournamentSection.vue';
 import { useAuthStore } from '../store/auth';
 
@@ -56,6 +57,12 @@ const routes = [
     path: '/statistics',
     name: 'Statistics',
     component: StatisticsView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/referral',
+    name: 'Referral',
+    component: ReferralView,
     meta: { requiresAuth: true },
   },
   {

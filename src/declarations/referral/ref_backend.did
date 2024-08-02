@@ -1,0 +1,93 @@
+type UUID = text;
+type TopView = 
+ record {
+   multiplier: float64;
+   netWorth: nat;
+   playerName: text;
+ };
+type Token = 
+ record {
+   amount: nat;
+   title: text;
+ };
+type Time = int;
+type TierID = nat;
+type Tier = 
+ record {
+   desc: text;
+   id: TierID;
+   status: text;
+   title: text;
+   token: Token;
+ };
+type Status = 
+ variant {
+   complete;
+   progress;
+   waiting;
+ };
+type RefAccount = 
+ record {
+   alias: text;
+   playerID: principal;
+   refByUUID: UUID;
+   tiers: vec Tier;
+   tokens: vec Token;
+   uuid: UUID;
+ };
+type RefAccView = 
+ record {
+   currentTier: Tier;
+   multiplier: float64;
+   netWorth: nat;
+   playerID: principal;
+   playerName: text;
+   signupTokenSum: nat;
+   singupLink: text;
+   tierTokenSum: nat;
+   topPlayers: vec TopView;
+   topPosition: nat;
+   topTokenAmount: record {
+                     nat;
+                     text;
+                   };
+ };
+type RPlayer = 
+ record {
+   balance: float64;
+   id: principal;
+   name: text;
+ };
+type RMatch = 
+ record {
+   date: Time;
+   entry: float64;
+   fee: float64;
+   id: text;
+   name: text;
+   player1: principal;
+   player2: opt principal;
+   price: float64;
+   status: Status;
+   winner: opt principal;
+ };
+service : {
+  ref_account: () -> (opt RefAccount) query;
+  ref_account_all: () -> (vec record {
+                                text;
+                                principal;
+                              }) query;
+  ref_account_by: (principal) -> (opt RefAccount) query;
+  ref_account_view: (principal) -> (opt RefAccView) query;
+  ref_claim_tier: (principal) -> (bool, text);
+  ref_claim_top: (principal, nat) -> (bool, text);
+  ref_complete_match: (text, principal) -> (opt RMatch);
+  ref_create_match: (RPlayer, float64) -> (RMatch);
+  ref_enroll: (opt text, text) -> (bool, text);
+  ref_enroll_by: (opt text, principal, text) -> (bool, text);
+  ref_find_match: (text) -> (opt RMatch);
+  ref_grant_prize: (RMatch) -> (opt principal);
+  ref_id_gen: () -> (principal);
+  ref_join_match: (RPlayer, text) -> (opt RMatch);
+  ref_tier_all: () -> (vec Tier) query;
+}

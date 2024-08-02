@@ -9,6 +9,7 @@
       <router-link to="/user">User</router-link>
       <router-link to="/statistics">Statistics</router-link>
       <router-link to="/tournament-section">Tournaments</router-link>
+   
     </nav>
   </div>
 </template>
