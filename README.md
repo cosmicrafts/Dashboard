@@ -67,7 +67,7 @@ This application bridges multiple blockchain ecosystems, supporting authenticati
 ### Frontend Framework
 - **Vue 3** (v3.5.22) - Progressive JavaScript framework with Composition API
 - **TypeScript** (v5.9.3) - Type-safe development
-- **Vite** (v7.1.10) - Next-generation frontend build tool
+- **Vite** (v7.3.7) - Next-generation frontend build tool
 - **Vue Router** (v4.6.0) - Official routing solution
 - **Pinia** (v3.0.3) - Intuitive state management
 
@@ -79,7 +79,6 @@ This application bridges multiple blockchain ecosystems, supporting authenticati
 - **@dfinity/candid** (v3.3.0) - Candid interface definition language support
 
 ### Wallet & Crypto Libraries
-- **@solana/web3.js** (v1.98.4) - Solana blockchain interaction
 - **tweetnacl** (v1.0.3) - Cryptographic operations
 - **base64-arraybuffer** (v1.0.2) - Binary data encoding
 
@@ -93,7 +92,7 @@ This application bridges multiple blockchain ecosystems, supporting authenticati
 
 ### Prerequisites
 
-- **Node.js** (v16 or higher)
+- **Node.js** (v20.19 or higher, required by Vite 7)
 - **npm** or **yarn** package manager
 - Active Internet Computer canister deployments
 - Environment variables configured (see below)
